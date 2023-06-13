@@ -1,8 +1,8 @@
 name: Trigger auto deployment for demo-container
 
-env:
-  AZURE_CONTAINER_APP_NAME: demo-container
-  AZURE_GROUP_NAME: demo-container
+# env:
+#   AZURE_CONTAINER_APP_NAME: demo-container
+#   AZURE_GROUP_NAME: demo-container
 
 # When this action will be executed
 on:
@@ -28,38 +28,38 @@ jobs:
       - name: Log in to GitHub container registry
         uses: docker/login-action@v1.10.0
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
+          registry: demoregistryvn2.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Lowercase the repo name and username
         run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
-      - name: Build and push container image to registry
+      - name: Build and push container image to Azure container registry
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ghcr.io/${{ env.REPO }}:${{ github.sha }}
+          tags: demoregistryvn2.azurecr.io/${{ env.REPO }}:${{ github.sha }}
           file: ./Dockerfile
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
+#   deploy:
+#     runs-on: ubuntu-latest
+#     needs: build
 
-    steps:
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+#     steps:
+#       - name: Azure Login
+#         uses: azure/login@v1
+#         with:
+#           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Lowercase the repo name and username
-        run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+#       - name: Lowercase the repo name and username
+#         run: echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
-      - name: Deploy to containerapp
-        uses: azure/CLI@v1
-        with:
-          inlineScript: |
-            az config set extension.use_dynamic_install=yes_without_prompt
-            az containerapp registry set -n ${{ env.AZURE_CONTAINER_APP_NAME }} -g ${{ env.AZURE_GROUP_NAME }} --server ghcr.io --username  ${{ github.actor }} --password ${{ secrets.PAT }}
-            az containerapp update -n demo-container -g demo-container --cpu 2 --memory 4Gi
-            az containerapp update -n ${{ env.AZURE_CONTAINER_APP_NAME }} -g ${{ env.AZURE_GROUP_NAME }} --image ghcr.io/${{ env.REPO }}:${{ github.sha }}
+#       - name: Deploy to containerapp
+#         uses: azure/CLI@v1
+#         with:
+#           inlineScript: |
+#             az config set extension.use_dynamic_install=yes_without_prompt
+#             az containerapp registry set -n ${{ env.AZURE_CONTAINER_APP_NAME }} -g ${{ env.AZURE_GROUP_NAME }} --server ghcr.io --username  ${{ github.actor }} --password ${{ secrets.PAT }}
+#             az containerapp update -n demo-container -g demo-container --cpu 2 --memory 4Gi
+#             az containerapp update -n ${{ env.AZURE_CONTAINER_APP_NAME }} -g ${{ env.AZURE_GROUP_NAME }} --image ghcr.io/${{ env.REPO }}:${{ github.sha }}
