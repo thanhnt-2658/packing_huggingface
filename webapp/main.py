@@ -14,7 +14,7 @@ class Body(BaseModel):
 def root():
     return HTMLResponse('<h1>This is API to interact with GPT2 moddel</h1>')
 
-@app.postgit ('/generate')
+@app.post('/generate')
 def predict(body: Body):
     results = generator(body.text, max_length=35, num_return_sequences=1)
     return results[0]
